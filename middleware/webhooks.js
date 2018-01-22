@@ -10,35 +10,35 @@ module.exports = function createWithWebhook({ secret, shopStore }) {
 
         try {
             getRawBody(request)
-                .then(buf => {
-                    const generated_hash = crypto
-                        .createHmac('sha256', secret)
-                        .update(buf)
-                        .digest('base64');
+            .then(buf => {
+                const generated_hash = crypto
+                .createHmac('sha256', secret)
+                .update(buf)
+                .digest('base64');
 
-                    if (generated_hash !== hmac) {
+                if (generated_hash !== hmac) {
+                    response.status(401).send();
+                    throw new Error("Unable to verify request HMAC");
+                    return;
+                }
+
+                shopStore.getShop({ shop: shopDomain }, (error, { access_token }) => {
+                    if (error) {
                         response.status(401).send();
-                        throw new Error("Unable to verify request HMAC");
+                        throw new Error("Couldn't fetch credentials for shop");
                         return;
                     }
 
-                    shopStore.getShop({ shop: shopDomain }, (error, { accessToken }) => {
-                        if (error) {
-                            response.status(401).send();
-                            throw new Error("Couldn't fetch credentials for shop");
-                            return;
-                        }
+                    request.body = buf.toString('utf8');
+                    request.webhook = { topic, shopDomain, access_token };
 
-                        request.body = buf.toString('utf8');
-                        request.webhook = { topic, shopDomain, accessToken };
-
-                        //response.status(200).send();
-                        next();
-                    });
-                })
-                .catch(err => {
-                    console.log(err);
+                    //response.status(200).send();
+                    next();
                 });
+            })
+            .catch(err => {
+                console.log(err);
+            });
         } catch(error) {
             response.send(error);
         }

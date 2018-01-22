@@ -15,15 +15,15 @@ module.exports = class SQLStrategy {
 
     initialize() {
         return this.knex.schema
-            .createTableIfNotExists('shops', table => {
-                table.increments('id');
-                table.string('shopify_domain');
-                table.string('access_token');
-                table.unique('shopify_domain');
-            })
-            .catch(err => {
-                console.log(err);
-            });
+        .createTableIfNotExists('shops', table => {
+            table.increments('id');
+            table.string('shopify_domain');
+            table.string('access_token');
+            table.unique('shopify_domain');
+        })
+        .catch(err => {
+            console.log(err);
+        });
     }
 
     storeShop({shop, accessToken, data = {}}, done) {
@@ -44,16 +44,17 @@ module.exports = class SQLStrategy {
         }
 
         this.knex.raw(sqlRaw)
-            .then(result => {
-                return done(null, accessToken);
-            });
+        .then(result => {
+            return done(null, accessToken);
+        });
     }
 
     getShop({shop}, done) {
         this.knex('shops')
-            .where('shopify_domain', shop)
-            .then(result => {
-                return done(null, result);
-            });
+        .where('shopify_domain', shop)
+        .then(result => {
+            // we need to return [0] because the raw query result output
+            return done(null, result[0]);
+        });
     }
 };
