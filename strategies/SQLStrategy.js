@@ -53,8 +53,11 @@ module.exports = class SQLStrategy {
         this.knex('shops')
         .where('shopify_domain', shop)
         .then(result => {
-            // we need to return [0] because the raw query result output
-            return done(null, result[0]);
+            // we need to return [0] because the raw query result output + name the variable accordingly
+            if (result[0].access_token) {
+                let accessToken = result[0].access_token;
+                return done(null, accessToken);
+            }
         });
     }
 };
