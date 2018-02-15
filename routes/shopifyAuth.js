@@ -90,6 +90,9 @@ module.exports = function createShopifyAuthRouter({
           request.session.shop = shop;
           afterAuth(request, response);
         });
+      })
+      .catch(err => {
+         console.error(`Error fetching https://${shop}/admin/oauth/access_token - ${err.message}`);
       });
   });
 

@@ -35,6 +35,9 @@ module.exports = async function shopifyApiProxy(incomingRequest, response, next)
         'Content-Type': 'application/json',
         'X-Shopify-Access-Token': accessToken,
       },
+    })
+    .catch(err => {
+      console.error(`Error fetching https://${shop}/admin${pathname}${searchString} - ${err.message}`);
     });
 
     const data = await result.text();
