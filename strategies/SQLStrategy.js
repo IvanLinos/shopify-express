@@ -28,6 +28,7 @@ module.exports = class SQLStrategy {
 
   storeShop({ shop, accessToken, data = {} }, done) {
     // IvanLinos: We need to make this until knex support "onduplicate" functionlaity
+    let sqlRaw = '';
     switch (this.knex.client.config.client) {
       case 'mysql':
         sqlRaw = `INSERT IGNORE INTO shops (shopify_domain, access_token) VALUES ('${shop}', '${accessToken}')`;
@@ -41,7 +42,6 @@ module.exports = class SQLStrategy {
       default:
         return;
     }
-    let sqlRaw = '';
 
     this.knex.raw(sqlRaw)
     .then(result => {
