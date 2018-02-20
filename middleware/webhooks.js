@@ -4,7 +4,7 @@ const getRawBody = require('raw-body');
 
 module.exports = function configureWithWebhook({ secret, shopStore }) {
   //return function createWebhookHandler(onVerified) {
-    return async function withWebhook(request, response) {
+    return async function withWebhook(request, response, next) {
       const { body: data } = request;
       const hmac = request.get('X-Shopify-Hmac-Sha256');
       const topic = request.get('X-Shopify-Topic');
@@ -33,8 +33,8 @@ module.exports = function configureWithWebhook({ secret, shopStore }) {
           request.body = rawBody.toString('utf8');
           request.webhook = { topic, shopDomain, accessToken };
 
-          response.status(200).send();
-
+          next();
+          //response.status(200).send();
           //onVerified(null, request);
         });
       } catch(error) {
