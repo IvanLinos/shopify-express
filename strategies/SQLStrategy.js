@@ -54,7 +54,7 @@ module.exports = class SQLStrategy {
       .where('shopify_domain', shop)
       .then(result => {
         // We need to return [0] because the raw query result output + name the variable accordingly
-        if (result[0].access_token) {
+        if (result && result[0] && result[0].access_token) {
           let accessToken = result[0].access_token;
           return done(null, accessToken);
         }
