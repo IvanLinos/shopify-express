@@ -82,11 +82,11 @@ module.exports = function createShopifyAuthRouter({
         const accessToken = responseBody.access_token;
 
         shopStore.storeShop({ accessToken, shop }, (err, token) => {
-          if (err) {
+          if (err || !token) {
             console.error('🔴 Error storing shop access token', err);
           }
 
-          request.session.accessToken = accessToken;
+          request.session.accessToken = token;
           request.session.shop = shop;
           afterAuth(request, response);
         });

@@ -27,26 +27,24 @@ module.exports = class SQLStrategy {
   }
 
   storeShop({ shop, accessToken, data = {} }, done) {
-    // IvanLinos: We need to make this until knex support "onduplicate" functionlaity
-    let sqlRaw = '';
-    switch (this.knex.client.config.client) {
-      case 'mysql':
-        sqlRaw = `INSERT IGNORE INTO shops (shopify_domain, access_token) VALUES ('${shop}', '${accessToken}')`;
-        break;
-      case 'pg':
-        sqlRaw = `INSERT INTO shops (shopify_domain, access_token) VALUES ('${shop}', '${accessToken}') ON CONFLICT DO NOTHING`;
-        break;
-      case 'sqlite3':
-        sqlRaw = `INSERT OR IGNORE INTO shops (shopify_domain, access_token) VALUES ('${shop}', '${accessToken}')`;
-        break;
-      default:
-        return;
-    }
+    (async () => {
+      try {
+        // knex does not support upsert for "on duplicate update" so this is a compatible method for all db types
+        let err = null;
+        const dbShop = await this.knex('shops').where({shopify_domain: shop}).select();
+        let insertUpdate = dbShop[0] && dbShop[0].access_token && dbShop[0].access_token;
 
-    this.knex.raw(sqlRaw)
-    .then(result => {
-      return done(null, accessToken);
-    });
+        if (!dbShop.length) {
+          insertUpdate = await this.knex('shops').insert({shopify_domain: shop, access_token: accessToken});
+        } else if (!dbShop[0].access_token) {
+          insertUpdate = await this.knex('shops').where({shopify_domain: shop}).update({access_token : accessToken});
+        }
+
+        return done(err, insertUpdate ? accessToken : null);
+      } catch (err) {
+        return done(null, null);
+      }
+    })();
   }
 
   getShop({ shop }, done) {
@@ -54,10 +52,7 @@ module.exports = class SQLStrategy {
       .where('shopify_domain', shop)
       .then(result => {
         // We need to return [0] because the raw query result output + name the variable accordingly
-        if (result && result[0] && result[0].access_token) {
-          let accessToken = result[0].access_token;
-          return done(null, accessToken);
-        }
+        return done(null, result && result[0] ? result[0].access_token : null);
       });
   }
 };
