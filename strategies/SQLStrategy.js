@@ -51,8 +51,9 @@ module.exports = class SQLStrategy {
     this.knex('shops')
       .where('shopify_domain', shop)
       .then(result => {
-        // We need to return [0] because the raw query result output + name the variable accordingly
-        return done(null, result && result[0] ? result[0].access_token : null);
+        // We need to return var named 'accessToken' to be '*Strategy*' interface compatible expected by webhoooks.js
+        let accessToken = result && result[0] ? result[0].access_token : null;
+        return done(null, accessToken);
       });
   }
 };
